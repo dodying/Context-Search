@@ -6,7 +6,7 @@
   "version": "1.0.1",
 
   "background": {
-    "scripts": ["background.js"]
+    "scripts": ["browser-polyfill.js","background.js"]
   },
 
   "permissions": [
@@ -18,17 +18,19 @@
 
   "options_ui": {
       "page": "options/options.html",
-      "browser_style": true
+      "chrome_style": true
+      //"browser_style": true
   },
 
   "icons": {
-    "48": "icons/search.svg"
-  },
-
-  "applications": {
+    "48": "icons/search.png"
+  }
+  /*
+  ,"applications": {
     "gecko": {
       "id": "{e040cf12-0537-4265-8ce0-ee195356ed60}",
       "strict_min_version": "52.0"
     }
   }
+  */
 }

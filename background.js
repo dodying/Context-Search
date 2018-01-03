@@ -2,12 +2,8 @@
 const FOLDER_NAME = "Searches"
 const ILLEGAL_PROTOCOLS = ["chrome", "javascript", "data", "file", "about"]
 
-var browserVersion = 0;
-
 // Get browser version for backwards compatibility
-function parseBrowserInfo(info){
-  browserVersion = parseInt(info.version.split(".")[0]);
-}
+var browserVersion = navigator.userAgent.match('Firefox') ? navigator.userAgent.match(/ rv:(\d+)/)[1] * 1 : 57;
 
 // Error logging
 function onCreated(n) {
@@ -62,7 +58,7 @@ function checkValid(url) {
   // Check that URL is a keyword search (i.e. containing "%s")
   if (url.indexOf("%s") > -1) {
       isValidWildcard = true;
-}
+  }
 
   if (isValidProtocol && isValidWildcard) {
     isValid = true;
@@ -108,9 +104,7 @@ function populateContextMenu(id, title, url, parent, type, subTreeID) {
           parentId: parent,
           id: id,
           title: title,
-          icons: {
-            16: "icons/folder.svg"
-          }
+          contexts: ["selection"],
         }, onCreated());
       }
 
@@ -121,6 +115,7 @@ function populateContextMenu(id, title, url, parent, type, subTreeID) {
             browser.contextMenus.create({
               parentId: parent,
               id: id,
+              contexts: ["selection"],
               type: "separator"
             }, onCreated());
           }
@@ -129,15 +124,13 @@ function populateContextMenu(id, title, url, parent, type, subTreeID) {
         if (url && title) {
           // These are the bookmarks with favicons
           let enabled = checkValid(url);
-          let favicon = "";
-          favicon = makeFavicon(url);
+          //let favicon = "";
+          //favicon = makeFavicon(url);
           browser.contextMenus.create({
             parentId: parent,
             id: url,
             title: title,
-            icons: {
-              16: favicon
-            },
+            contexts: ["selection"],
             enabled: enabled,
             onclick: goTo
           }, onCreated());
@@ -207,7 +200,6 @@ function createTab(info, active, index) {
   });
 }
 
-browser.runtime.getBrowserInfo().then(parseBrowserInfo);
 browser.bookmarks.onCreated.addListener(reGenerateList);
 browser.bookmarks.onRemoved.addListener(reGenerateList);
 browser.bookmarks.onChanged.addListener(reGenerateList);
