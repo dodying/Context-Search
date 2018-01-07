@@ -7,8 +7,8 @@ var browserVersion = navigator.userAgent.match('Firefox') ? navigator.userAgent.
 
 // Error logging
 function onCreated(n) {
-  if (browser.runtime.lastError) {
-    console.log(`Error: ${browser.runtime.lastError}`);
+  if (chrome.runtime.lastError) {
+    console.log(`Error: ${chrome.runtime.lastError}`);
   }
 }
 
@@ -18,14 +18,26 @@ function onError(error) {
 
 // Get ID of FOLDER_NAME and the object and pass everything through listBookmarksInTree:
 function main() {
-  let gettingRootFolder = browser.bookmarks.search({title: FOLDER_NAME});
-  gettingRootFolder.then((bookmarks) => {
-    let subTreeID = bookmarks[0].id;
+  chrome.bookmarks.search({title: FOLDER_NAME}, (bookmarks) => {
+    if (bookmarks.length > 0) {
+      let subTreeID = bookmarks[0].id;
 
-    let gettingSubTree = browser.bookmarks.getSubTree(subTreeID);
-    gettingSubTree.then((bookmarkItems) => {
-      listBookmarksInTree(bookmarkItems[0], subTreeID);
-    });
+      chrome.bookmarks.getSubTree(subTreeID, (bookmarkItems) => {
+        if (bookmarkItems[0].children.length > 0) {
+          listBookmarksInTree(bookmarkItems[0], subTreeID);
+        }
+
+        // No root folder found: Show "Getting Started" help link
+        else {
+          createHelpLink();
+        }
+      });
+    }
+
+    // No root folder found: Show "Getting Started" help link
+    else {
+      createHelpLink();
+    }
   });
 }
 
@@ -41,8 +53,7 @@ function listBookmarksInTree(bookmarkItem, subTreeID) {
 }
 
 function reGenerateList() {
-  let removingContextMenu = browser.contextMenus.removeAll();
-  removingContextMenu.then(main);
+  let removingContextMenu = chrome.contextMenus.removeAll(main);
 }
 
 function checkValid(url) {
@@ -83,15 +94,25 @@ function makeFavicon(url) {
   return faviconUrl;
 }
 
+// Show a "Getting Started" link in the context menu if not set up properly
+function createHelpLink() {
+  chrome.contextMenus.create({
+    id: "https://github.com/NumeriusNegidius/Context-Search/wiki",
+    title: chrome.i18n.getMessage("helpMenuLabel"),
+    contexts: ["all"],
+    onclick: goTo
+  }, onCreated());
+}
+
 // Make the context menu
 function populateContextMenu(id, title, url, parent, type, subTreeID) {
 
   if (id == subTreeID) {
     //This is the root folder, make the title what is searched for
-    browser.contextMenus.create({
+    chrome.contextMenus.create({
       id: subTreeID,
-      title: browser.i18n.getMessage("rootMenuLabel") + ": %s",
-      contexts: ["selection"]
+      title: chrome.i18n.getMessage("rootMenuLabel") + ": %s",
+      contexts: ["all"]
     }, onCreated());
   }
   else {
@@ -100,11 +121,11 @@ function populateContextMenu(id, title, url, parent, type, subTreeID) {
     if (browserVersion >= 56) {
       if (!url) {
         // These are the folders
-        browser.contextMenus.create({
+        chrome.contextMenus.create({
           parentId: parent,
           id: id,
           title: title,
-          contexts: ["selection"],
+          contexts: ["all"],
         }, onCreated());
       }
 
@@ -112,10 +133,10 @@ function populateContextMenu(id, title, url, parent, type, subTreeID) {
         if (browserVersion >= 57) {
           if (type == "separator") {
             // These are the separators
-            browser.contextMenus.create({
+            chrome.contextMenus.create({
               parentId: parent,
               id: id,
-              contexts: ["selection"],
+              contexts: ["all"],
               type: "separator"
             }, onCreated());
           }
@@ -126,11 +147,11 @@ function populateContextMenu(id, title, url, parent, type, subTreeID) {
           let enabled = checkValid(url);
           //let favicon = "";
           //favicon = makeFavicon(url);
-          browser.contextMenus.create({
+          chrome.contextMenus.create({
             parentId: parent,
             id: url,
             title: title,
-            contexts: ["selection"],
+            contexts: ["all"],
             enabled: enabled,
             onclick: goTo
           }, onCreated());
@@ -143,7 +164,7 @@ function populateContextMenu(id, title, url, parent, type, subTreeID) {
     if (browserVersion < 56) {
       if (!url) {
         // These are the folders
-        browser.contextMenus.create({
+        chrome.contextMenus.create({
           parentId: parent,
           id: id,
           title: title
@@ -153,7 +174,7 @@ function populateContextMenu(id, title, url, parent, type, subTreeID) {
       else {
         let enabled = checkValid(url);
         // These are the bookmarks without favicons
-        browser.contextMenus.create({
+        chrome.contextMenus.create({
           parentId: parent,
           id: url,
           title: title,
@@ -170,8 +191,7 @@ function populateContextMenu(id, title, url, parent, type, subTreeID) {
 // Check options if tab should open as active or in background
 // Then pass to createTab
 function goTo(info, parentTab) {
-  let gettingItem = browser.storage.local.get();
-  gettingItem.then((response) => {
+  let gettingItem = chrome.storage.local.get((response) => {
     if (response.makeNewTabActive == "false") {
       active = false;
     }
@@ -193,16 +213,17 @@ function goTo(info, parentTab) {
 // Replace the browser standard %s for keyword searches with
 // the selected text on the page and make a tab
 function createTab(info, active, index) {
-  browser.tabs.create({
-    url: info.menuItemId.replace("%s", encodeURIComponent(info.selectionText)),
+  let text = info.selectionText || info.linkUrl || info.srcUrl || info.pageUrl;
+  chrome.tabs.create({
+    url: info.menuItemId.replace("%s", encodeURIComponent(text)),
     active: active,
     index: index
   });
 }
 
-browser.bookmarks.onCreated.addListener(reGenerateList);
-browser.bookmarks.onRemoved.addListener(reGenerateList);
-browser.bookmarks.onChanged.addListener(reGenerateList);
-browser.bookmarks.onMoved.addListener(reGenerateList);
+chrome.bookmarks.onCreated.addListener(reGenerateList);
+chrome.bookmarks.onRemoved.addListener(reGenerateList);
+chrome.bookmarks.onChanged.addListener(reGenerateList);
+chrome.bookmarks.onMoved.addListener(reGenerateList);
 
 main();

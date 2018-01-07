@@ -8,7 +8,7 @@ function saveOptions(e) {
     makeNewTabActive = "false";
   }
 
-  browser.storage.local.set({
+  chrome.storage.local.set({
     makeNewTabActive: makeNewTabActive,
     tabPlacement: tabPlacement
   });
@@ -17,9 +17,7 @@ function saveOptions(e) {
 
 function getOptions() {
   localize();
-  let gettingOptions = browser.storage.local.get();
-
-  gettingOptions.then((response) => {
+  chrome.storage.local.get((response) => {
     if (response.tabPlacement) {
       document.getElementById(response.tabPlacement).selected = true;
     }
@@ -38,7 +36,7 @@ function localize() {
   for (let i = 0; i < getNode.length; i++) {
     let node = getNode[i];
     let msg = node.textContent;
-    node.firstChild.nodeValue = browser.i18n.getMessage(msg);
+    node.firstChild.nodeValue = chrome.i18n.getMessage(msg);
   }
 }
 

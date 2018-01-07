@@ -1,12 +1,12 @@
 {
   "extensionDescription": {
-    "message": "在上下文菜单中用您所选的搜索引擎来搜索选中的文本。",
+    "message": "Search selected text on search engines of your choice via the context menu.",
     "description": "Description of the add-on."
   },
 
 
   "rootMenuLabel": {
-    "message": "搜索",
+    "message": "Pesquisar por",
     "description": "The root menu label."
   },
 
@@ -17,22 +17,22 @@
 
 
   "optionsTabPlacementTitle": {
-    "message": "打开结果标签页于",
+    "message": "Abrir aba de resultados de pesquisa",
     "description": "Options title for tab placement select element."
   },
 
   "optionsTabPlacementNextToCurrent": {
-    "message": "当前标签页右侧",
+    "message": "Ao lado da atual",
     "description": "Select option label for tab placement: Next to the current one."
   },
 
   "optionsTabPlacementEndOfTabstrip": {
-    "message": "标签栏的最右边",
+    "message": "No final da barra de abas",
     "description": "Select option label for tab placement: At the end of tab strip."
   },
 
   "optionsMakeNewTabActive": {
-    "message": "立即切换到结果标签页",
+    "message": "Alternar para a aba imediatamente",
     "description": "Checkbox label: Switch to the tab immediately."
   }
 }

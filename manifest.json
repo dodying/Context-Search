@@ -3,10 +3,10 @@
   "name": "Context Search WebExtension",
   "description": "__MSG_extensionDescription__",
   "default_locale": "en",
-  "version": "1.0.1",
+  "version": "1.0.3",
 
   "background": {
-    "scripts": ["browser-polyfill.js","background.js"]
+    "scripts": ["background.js"]
   },
 
   "permissions": [
@@ -24,6 +24,10 @@
 
   "icons": {
     "48": "icons/search.png"
+  },
+
+   "chrome_url_overrides" : {
+    "newtab": "newtab/newtab.html"
   }
   /*
   ,"applications": {
