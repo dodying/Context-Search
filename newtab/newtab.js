@@ -73,7 +73,7 @@ function populateMenu(item, subTreeID) {
     let title = $_('li');
     if (item.id !== subTreeID) {
       title.className = 'title';
-      title.textContent = item.title;
+      title.textContent = item.title || 'Folder_' + item.id;
       folder.appendChild(title);
     }
     $(item.id === subTreeID ? '.list' : '#_' + item.parentId).appendChild(folder);
@@ -83,8 +83,8 @@ function populateMenu(item, subTreeID) {
     let favicon = makeFavicon(item.url);
     _.className = 'list_' + enabled;
     _.name = item.url;
-    _.title = item.title;
-    _.innerHTML = `<img src="${favicon}">${item.title}`;
+    _.title = item.title || item.url;
+    _.innerHTML = `<img src="${favicon}">${item.title || item.url}`;
     $('#_' + item.parentId).appendChild(_);
   }
 }

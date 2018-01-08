@@ -124,7 +124,7 @@ function populateContextMenu(id, title, url, parent, type, subTreeID) {
         chrome.contextMenus.create({
           parentId: parent,
           id: id,
-          title: title,
+          title: title || 'Folder_' + id,
           contexts: ["all"],
         }, onCreated());
       }
@@ -142,7 +142,7 @@ function populateContextMenu(id, title, url, parent, type, subTreeID) {
           }
         }
 
-        if (url && title) {
+        if (url) {
           // These are the bookmarks with favicons
           let enabled = checkValid(url);
           //let favicon = "";
@@ -150,7 +150,7 @@ function populateContextMenu(id, title, url, parent, type, subTreeID) {
           chrome.contextMenus.create({
             parentId: parent,
             id: url,
-            title: title,
+            title: title || url,
             contexts: ["all"],
             enabled: enabled,
             onclick: goTo
@@ -167,7 +167,7 @@ function populateContextMenu(id, title, url, parent, type, subTreeID) {
         chrome.contextMenus.create({
           parentId: parent,
           id: id,
-          title: title
+          title: title || 'Folder_' + id
         }, onCreated());
       }
 
@@ -177,7 +177,7 @@ function populateContextMenu(id, title, url, parent, type, subTreeID) {
         chrome.contextMenus.create({
           parentId: parent,
           id: url,
-          title: title,
+          title: title || url,
           enabled: enabled,
           onclick: goTo
         }, onCreated());
