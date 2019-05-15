@@ -5,6 +5,8 @@ const ILLEGAL_PROTOCOLS = ["chrome", "javascript", "data", "file", "about"]
 // Get browser version for backwards compatibility
 var browserVersion = navigator.userAgent.match('Firefox') ? navigator.userAgent.match(/ rv:(\d+)/)[1] * 1 : 57;
 
+var searchLibs = []
+
 // Error logging
 function onCreated(n) {
   if (chrome.runtime.lastError) {
@@ -43,6 +45,15 @@ function main() {
 
 // Parse through all bookmarks in tree and fire populateContextMenu for each:
 function listBookmarksInTree(bookmarkItem, subTreeID) {
+  if (bookmarkItem.url && bookmarkItem.url.match('%s')) {
+    let keyword = bookmarkItem.title.match(/\(\&(.*?)\)/)
+    searchLibs.push({
+      title: bookmarkItem.title,
+      keyword: keyword ? keyword[1] : new URL(bookmarkItem.url).hostname,
+      url: bookmarkItem.url
+    })
+  }
+
   populateContextMenu(bookmarkItem.id, bookmarkItem.title, bookmarkItem.url, bookmarkItem.parentId, bookmarkItem.type, subTreeID);
 
   if (bookmarkItem.children) {
@@ -227,3 +238,25 @@ chrome.bookmarks.onChanged.addListener(reGenerateList);
 chrome.bookmarks.onMoved.addListener(reGenerateList);
 
 main();
+
+chrome.omnibox.onInputChanged.addListener(function (text, suggest) {
+  let [, keyword, input] = text.match(/^(.*?)(\s.*$|$)/)
+  input = input.trim()
+  let libs = searchLibs.filter(i => i.keyword.includes(keyword))
+  if (libs.length === 0) return suggest([])
+  let lists = libs.map(i => {
+    return {
+      content: `${i.keyword} ${input}`,
+      description:`使用 ${i.title} 搜索: ${input}`
+    }
+  })
+  suggest(lists)
+})
+
+chrome.omnibox.onInputEntered.addListener(function (text) {
+  let [, keyword, input] = text.match(/^(.*?)(\s.*$|$)/)
+  input = input.trim()
+  let libs = searchLibs.filter(i => i.keyword.includes(keyword))
+  if (libs.length === 0) return
+  chrome.tabs.update({ url: libs[0].url.replace("%s", encodeURIComponent(input)) })
+})

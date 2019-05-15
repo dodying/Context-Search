@@ -4,31 +4,31 @@
   "description": "__MSG_extensionDescription__",
   "default_locale": "en",
   "version": "1.0.3",
-
   "background": {
-    "scripts": ["background.js"]
+    "scripts": [
+      "background.js"
+    ]
   },
-
+  "omnibox": {
+    "keyword": "`"
+  },
   "permissions": [
     "contextMenus",
     "activeTab",
     "storage",
     "bookmarks"
   ],
-
   "options_ui": {
-      "page": "options/options.html",
-      "chrome_style": true
-      //"browser_style": true
+    "page": "options/options.html",
+    "chrome_style": true
+    //"browser_style": true
   },
-
   "icons": {
     "48": "icons/search.png"
-  },
-
-   "chrome_url_overrides" : {
-    "newtab": "newtab/newtab.html"
   }
+  //  "chrome_url_overrides" : {
+  //   "newtab": "newtab/newtab.html"
+  // }
   /*
   ,"applications": {
     "gecko": {
