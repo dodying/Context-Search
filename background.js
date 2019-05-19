@@ -47,9 +47,16 @@ function main() {
 function listBookmarksInTree(bookmarkItem, subTreeID) {
   if (bookmarkItem.url && bookmarkItem.url.match('%s')) {
     let keyword = bookmarkItem.title.match(/\(\&(.*?)\)/)
+    keyword = keyword ? keyword[1] : ''
+    let host = new URL(bookmarkItem.url).hostname.replace(/^www\./, '')
+    if (!keyword) {
+      keyword = host
+    } else if (searchLibs.filter(i => i.keyword === keyword).length) {
+      keyword = `${keyword}-${host}`
+    }
     searchLibs.push({
       title: bookmarkItem.title,
-      keyword: keyword ? keyword[1] : new URL(bookmarkItem.url).hostname,
+      keyword: keyword,
       url: bookmarkItem.url
     })
   }
@@ -239,15 +246,47 @@ chrome.bookmarks.onMoved.addListener(reGenerateList);
 
 main();
 
+function searchLibsFilter (keyword) {
+  return searchLibs.filter(i => i.keyword.includes(keyword)).sort((a, b) => {
+    a = a.keyword
+    b = b.keyword
+    if (a.indexOf(keyword) < b.indexOf(keyword)) {
+      return -1
+    } else if (a.indexOf(keyword) > b.indexOf(keyword)) {
+      return 1
+    }
+
+    if (a.length < b.length) {
+      return -1
+    } else if (a.length > b.length) {
+      return 1
+    }
+
+    return a < b ? -1 : a === b ? 0 : 1
+  })
+}
+
+function htmlEscape (text) {
+  return text.replace(/["&<>]/g, function (match) {
+    return {
+      '"': '&quot;',
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;'
+    }[match]
+  })
+}
+
 chrome.omnibox.onInputChanged.addListener(function (text, suggest) {
   let [, keyword, input] = text.match(/^(.*?)(\s.*$|$)/)
   input = input.trim()
-  let libs = searchLibs.filter(i => i.keyword.includes(keyword))
+  let libs = searchLibsFilter(keyword)
   if (libs.length === 0) return suggest([])
   let lists = libs.map(i => {
     return {
       content: `${i.keyword} ${input}`,
-      description:`使用 ${i.title} 搜索: ${input}`
+      description: `<dim>使用</dim> <url>${htmlEscape(i.title)}</url> <dim>搜索</dim>: <match>${htmlEscape(input)}</match>`,
+      deletable: true
     }
   })
   suggest(lists)
@@ -256,7 +295,7 @@ chrome.omnibox.onInputChanged.addListener(function (text, suggest) {
 chrome.omnibox.onInputEntered.addListener(function (text) {
   let [, keyword, input] = text.match(/^(.*?)(\s.*$|$)/)
   input = input.trim()
-  let libs = searchLibs.filter(i => i.keyword.includes(keyword))
+  let libs = searchLibsFilter(keyword)
   if (libs.length === 0) return
   chrome.tabs.update({ url: libs[0].url.replace("%s", encodeURIComponent(input)) })
 })
